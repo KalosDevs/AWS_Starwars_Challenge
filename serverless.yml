@@ -1,0 +1,241 @@
+service: starwars-weather-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-2
+  logRetentionInDays: 14
+  tracing:
+    lambda: true
+  environment:
+    FUSIONADOS_TABLE: ${self:service}-FusionadosTable-${opt:stage, 'dev'}
+    PLANETAS_TABLE: ${self:service}-PlanetasTable-${opt:stage, 'dev'}
+    CACHE_TABLE: ${self:service}-ApiCache-${opt:stage, 'dev'}
+    NODE_OPTIONS: "--enable-source-maps"
+    API_GATEWAY_URL: https://ksfkieill2.execute-api.us-east-2.amazonaws.com
+    COGNITO_CLIENT_ID: 4c78faftdajd64fg4b3fg5nusc
+    COGNITO_USER_POOL_ID: us-east-2_YMIKgaKss
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:Query
+            - dynamodb:DeleteItem
+            - dynamodb:UpdateItem
+            - dynamodb:BatchWriteItem
+            - dynamodb:Scan  # Añade explícitamente Scan
+            - dynamodb:BatchGetItem
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FUSIONADOS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FUSIONADOS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.PLANETAS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.PLANETAS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CACHE_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CACHE_TABLE}/index/*"
+
+plugins:
+  - serverless-offline
+  - serverless-esbuild
+  - serverless-openapi-documentation
+
+custom:
+  documentation:
+    api:
+      info:
+        title: AWS Challenge API
+        version: 1
+        description: API protegida por Cognito con flujo client_credentials
+      components:
+        securitySchemes:
+          BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+
+functions:
+  fusionados:
+    handler: src/handlers/fusionados.handler
+    tracing: Active
+    events:
+      - http:
+          path: fusionados
+          method: get
+          cors: true
+          documentation:
+            summary: Fusionar datos de personajes y clima
+            description: Obtiene datos de personajes de Star Wars y los fusiona con datos meteorológicos aleatorios.
+  
+  almacenar:
+    handler: src/handlers/almacenar.handler
+    events:
+      - http:
+          path: almacenar
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:us-east-2:462513676702:userpool/us-east-2_YMIKgaKss
+            scopes:
+              - default-m2m-resource-server-dff2vm/write
+          documentation:
+            summary: Almacenar información personalizada sobre un planeta
+            description: Valida y guarda datos de planetas en la base de datos.
+            security:
+              - BearerAuth: []
+            requestBody:
+              description: Datos del planeta a almacenar
+              required: true
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    required:
+                      - nombre
+                      - masaKg
+                      - radioKm
+                      - distanciaSolKm
+                      - poseeAnillos
+                      - numeroLunas
+                      - atmosfera
+                      - gravedad
+                    properties:
+                      nombre:
+                        type: string
+                      masaKg:
+                        type: string
+                      radioKm:
+                        type: string
+                      distanciaSolKm:
+                        type: string
+                      poseeAnillos:
+                        type: boolean
+                      numeroLunas:
+                        type: integer
+                      atmosfera:
+                        type: array
+                        items:
+                          type: string
+                      gravedad:
+                        type: string
+
+  historial:
+    handler: src/handlers/historial.handler
+    events:
+      - http:
+          path: historial
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:us-east-2:462513676702:userpool/us-east-2_YMIKgaKss
+            scopes:
+              - default-m2m-resource-server-dff2vm/read
+          documentation:
+            summary: Obtener historial de fusiones
+            description: Retorna el historial de todas las respuestas almacenadas por el endpoint `/fusionados`.
+            security:
+              - BearerAuth: []
+            requestParameters:
+              - name: limit
+                in: query
+                required: false
+                schema:
+                  type: integer
+                  default: 10
+                description: Número máximo de elementos por página
+              - name: offset
+                in: query
+                required: false
+                schema:
+                  type: integer
+                  default: 0
+                description: Índice desde el cual comenzar la paginación
+
+  swagger:
+    handler: src/handlers/swagger.handler
+    events:
+      - http:
+          path: docs
+          method: get
+          cors: true
+
+  swaggerYaml:
+    handler: src/handlers/swaggerYaml.handler
+    events:
+      - http:
+          path: docs/swagger.yaml
+          method: get
+          cors: true
+
+package:
+  include:
+    - docs/**
+
+resources:
+  Resources:
+    FusionadosTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:provider.environment.FUSIONADOS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    ApiCache:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:provider.environment.CACHE_TABLE}
+        AttributeDefinitions:
+          - AttributeName: cacheKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: cacheKey
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
+    PlanetasTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:provider.environment.PLANETAS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: "nombre"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: "NombreIndex"
+            KeySchema:
+              - AttributeName: "nombre"
+                KeyType: "HASH"
+            Projection:
+              ProjectionType: "ALL"
+        BillingMode: PAY_PER_REQUEST
+
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: cognito-authorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - arn:aws:cognito-idp:us-east-2:462513676702:userpool/us-east-2_YMIKgaKss

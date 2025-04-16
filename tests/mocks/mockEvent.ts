@@ -1,0 +1,50 @@
+import { APIGatewayProxyEvent } from 'aws-lambda';
+
+export const createMockEvent = (body: any, headers: Record<string, string> = {}) => ({
+  body: JSON.stringify(body),
+  headers: {
+    'Content-Type': 'application/json',
+    ...headers
+  },
+  multiValueHeaders: {},
+  httpMethod: 'POST',
+  isBase64Encoded: false,
+  path: '/almacenar',
+  pathParameters: null,
+  queryStringParameters: null,
+  multiValueQueryStringParameters: null,
+  stageVariables: null,
+  resource: '/planetas',
+  requestContext: {
+    accountId: '123456789012',
+    apiId: 'apiId123',
+    authorizer: {
+      principalId: 'user123',
+    },
+    protocol: 'HTTP/1.1',
+    requestId: 'req123',
+    resourceId: 'res123',
+    resourcePath: '/almacenar',
+    stage: 'dev',
+    httpMethod: 'POST',
+    path: '/almacenar',
+    requestTimeEpoch: Date.now(),
+    identity: {
+      cognitoIdentityPoolId: null,
+      cognitoIdentityId: null,
+      apiKey: null,
+      apiKeyId: 'apiKey123',
+      userArn: 'arn:aws:iam::123456789012:user/test',
+      cognitoAuthenticationType: null,
+      cognitoAuthenticationProvider: null,
+      caller: 'caller123',
+      sourceIp: '192.168.0.1',
+      userAgent: 'PostmanRuntime/7.29.0',
+      accountId: '123456789012',
+      accessKey: 'accessKey123',
+      user: 'user123',
+      clientCert: null,
+      principalOrgId: null,
+    },
+  },
+});

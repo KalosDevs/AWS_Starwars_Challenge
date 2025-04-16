@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Serverless Offline",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serverless",
+        "offline",
+        "--noTimeout"
+      ],
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal",
+      "stopOnEntry": false
+    }
+  ]
+}

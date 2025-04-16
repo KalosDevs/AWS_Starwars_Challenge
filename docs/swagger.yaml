@@ -1,0 +1,209 @@
+openapi: 3.0.1
+info:
+  title: AWS Challenge API
+  description: Documentación de la API con Swagger
+  version: 1.0.0
+
+servers:
+  - url: '{serverUrl}/dev'
+    variables:
+      serverUrl:
+        default: 'https://ksfkieill2.execute-api.us-east-2.amazonaws.com/'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Planeta:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        masaKg:
+          type: number
+        radioKm:
+          type: number
+        distanciaSolKm:
+          type: number
+        poseeAnillos:
+          type: boolean
+        numeroLunas:
+          type: integer
+        atmosfera:
+          type: array
+          items:
+            type: string
+        gravedad:
+          type: number
+
+security:
+  - BearerAuth: []
+
+paths:
+  /fusionados:
+    get:
+      summary: Fusionar datos de personajes y clima
+      description: Obtiene datos de personajes de Star Wars y los fusiona con datos meteorológicos aleatorios. Los resultados se almacenan, se cachean y se devuelven.
+      responses:
+        '200':
+          description: Datos fusionados exitosamente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    nombre:
+                      type: string
+                      example: "Luke Skywalker"
+                    altura:
+                      type: string
+                      example: "172"
+                    planeta:
+                      type: object
+                      properties:
+                        nombre:
+                          type: string
+                          example: "Tatooine"
+                        clima:
+                          type: string
+                          example: "Temperatura: 22°C"
+        '500':
+          description: Error al fusionar los datos
+
+  /almacenar:
+    post:
+      summary: Almacenar información personalizada sobre un planeta
+      description: Valida y guarda datos de planetas en la base de datos.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nombre
+                - masaKg
+                - radioKm
+                - distanciaSolKm
+                - poseeAnillos
+                - numeroLunas
+                - atmosfera
+                - gravedad
+              properties:
+                nombre:
+                  type: string
+                  example: "Tierra"
+                masaKg:
+                  type: string
+                  example: "5.972e24"
+                radioKm:
+                  type: string
+                  example: "6371"
+                distanciaSolKm:
+                  type: string
+                  example: "149600000"
+                poseeAnillos:
+                  type: boolean
+                  example: false
+                numeroLunas:
+                  type: integer
+                  example: 1
+                atmosfera:
+                  type: array
+                  items:
+                    type: string
+                  example: ["N2", "O2"]
+                gravedad:
+                  type: string
+                  example: "9.81"
+      responses:
+        '200':
+          description: Datos guardados exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Guardado exitosamente"
+                  data:
+                    $ref: '#/components/schemas/Planeta'
+        '500':
+          description: Error al guardar los datos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detalle:
+                    type: string
+
+  /historial:
+    get:
+      summary: Obtener historial de fusiones
+      description: Retorna el historial de todas las respuestas almacenadas por el endpoint `/fusionados`, ordenado cronológicamente y paginado.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista paginada del historial de fusiones.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        timestamp:
+                          type: string
+                          format: date-time
+                        data:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              nombre:
+                                type: string
+                              altura:
+                                type: string
+                              planeta:
+                                type: object
+                                properties:
+                                  nombre:
+                                    type: string
+                                  clima:
+                                    type: string
+        '500':
+          description: Error al obtener el historial
