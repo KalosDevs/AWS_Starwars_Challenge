@@ -56,11 +56,13 @@ Reemplaza <client_id:client_secret en base64> por el resultado de codificar en b
 
 📘 Endpoints
 Método	Ruta	Auth Requerida	Descripción
+
 GET	/fusionados	❌	Fusiona datos de Star Wars con clima aleatorio
 POST	/almacenar	✅	Almacena un planeta personalizado
 GET	/historial	✅	Lista el historial de datos fusionados
 GET	/docs	❌	Vista Swagger UI
 GET	/docs/swagger.yaml	❌	Documento Swagger YAML
+
 🧪 Probar en Swagger UI
 Swagger UI está disponible en producción en:
 
