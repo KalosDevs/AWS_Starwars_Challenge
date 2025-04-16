@@ -18,23 +18,6 @@ API construida con Serverless Framework, Node.js y TypeScript que fusiona datos 
 - serverless-offline
 - serverless-esbuild
 
-
-## 📁 Estructura del Proyecto
-bash
-├── src/
-│   ├── handlers/
-│   │   ├── fusionados.handler.ts
-│   │   ├── almacenar.handler.ts
-│   │   ├── historial.handler.ts
-│   │   ├── swagger.handler.ts
-│   │   └── swaggerYaml.handler.ts
-├── docs/
-│   └── swagger.yaml
-├── serverless.yml
-├── package.json
-└── README.md
-bash
-
 📦 Instalación
 bash
 Copiar
@@ -51,7 +34,8 @@ npm run start
 npm run debug
 
 # Ejecutar tests (provisorio)
-npm run test
+npm run test 
+
 🔐 Autenticación con Cognito
 El flujo de autenticación es client_credentials.
 
