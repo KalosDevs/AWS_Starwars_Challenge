@@ -20,7 +20,7 @@ API construida con Serverless Framework, Node.js y TypeScript que fusiona datos 
 
 
 ## 📁 Estructura del Proyecto
-.
+bash
 ├── src/
 │   ├── handlers/
 │   │   ├── fusionados.handler.ts
@@ -33,6 +33,8 @@ API construida con Serverless Framework, Node.js y TypeScript que fusiona datos 
 ├── serverless.yml
 ├── package.json
 └── README.md
+bash
+
 📦 Instalación
 bash
 Copiar
