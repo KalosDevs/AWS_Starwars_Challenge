@@ -70,7 +70,7 @@ Para autenticar endpoints protegidos, haz lo siguiente:
 
 Haz clic en "Authorize"
 
-Escribe Bearer <access_token>
+Colocar <access_token> en la casilla y luego en "Authorize"
 
 Ejecuta llamadas protegidas
 
