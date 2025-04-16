@@ -33,6 +33,8 @@ npm run start
 # Modo debug
 npm run debug
 
+Además, ya existe una configuración en .vscode para ejecutar la aplicación en modo debug desde Visual Studio
+
 # Ejecutar tests (provisorio)
 npm run test 
 
@@ -97,6 +99,7 @@ bash
 Copiar
 Editar
 npx jest
+
 📌 Notas
 Los endpoints /almacenar y /historial requieren autorización por Cognito.
 
@@ -104,3 +107,4 @@ Usamos autorización tipo COGNITO_USER_POOLS con scopes específicos para read y
 
 📞 Contacto
 Hecho con ❤️ para el reto de AWS.
+Por favor, contactar a mi correo nathanromc94@gmail.com si tiene alguna duda
